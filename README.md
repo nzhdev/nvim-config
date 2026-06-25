@@ -1,6 +1,6 @@
 # Neovim Configuration
 
-This is a personal Neovim configuration built with [lazy.nvim](https://github.com/folke/lazy.nvim).
+A personal Neovim configuration built with [vim.pack](https://neovim.io/doc/user/lua.html#vim.pack) (Neovim 0.11+).
 
 ## Keybindings
 
@@ -8,7 +8,6 @@ Leader key is set to `<Space>`.
 
 ### General
 | Keybinding | Action | Mode |
-|Data|Description|Mode|
 |---|---|---|
 | `<leader>p` | Paste from system clipboard | Normal |
 | `<leader>y` | Yank to system clipboard | Normal, Visual |
@@ -17,23 +16,62 @@ Leader key is set to `<Space>`.
 | `gb` | Go back in jump list (remapped from `<C-o>`) | Normal |
 | `gf` | Go forward in jump list (remapped from `<C-i>`) | Normal |
 
-### Plugins
+### FFF (File Finder)
 
-#### Telescope (Fuzzy Finder)
+FFF is a Rust-powered fuzzy file picker with frecency sorting, git integration, and multi-mode grep.
+
 | Keybinding | Action |
 |---|---|
-| `<leader>ff` | Find files |
-| `<leader>fg` | Live grep |
-| `<leader>fb` | Find buffers |
-| `<leader>fh` | Help tags |
-| `<space>fn` | Edit Neovim configuration files |
+| `ff` | Find files |
+| `fg` | Live grep |
+| `fz` | Fuzzy grep (cycles plain/regex/fuzzy modes) |
+| `fc` | Search word under cursor |
 
-#### Oil (File Explorer)
+#### FFF vs Telescope
+
+| Feature | FFF | Telescope (old) |
+|---|---|---|
+| File finding | `ff` — frecency-sorted | `<leader>ff` — gitignore-aware |
+| Live grep | `fg` — plain/regex/fuzzy modes | `<leader>fg` — ripgrep-powered |
+| Fuzzy grep | `fz` — cycles search modes | No built-in equivalent |
+| Search word under cursor | `fc` — one keypress | `<leader>fg` + manually type word |
+| Buffer picker | Not available | `<leader>fb` |
+| Help tags | Not available | `<leader>fh` |
+| Speed | Rust SIMD, very fast | Lua, fast (ripgrep for grep) |
+| Dependencies | Self-contained binary | Requires ripgrep, fd (optional) |
+| Sorting | Frecency (remembers usage) | No frecency |
+| Git integration | Built-in status highlighting | Via extensions |
+
+#### FFF Picker Keybindings (inside the picker)
+
+| Key | Action |
+|---|---|
+| `<Space>` | Close picker |
+| `<C-j>` / `<C-k>` | Navigate results |
+| `<C-d>` / `<C-u>` | Scroll preview |
+| `<CR>` | Open in current window |
+| `<C-x>` | Open in horizontal split |
+| `<C-v>` | Open in vertical split |
+| `<C-t>` | Open in new tab |
+| `<Tab>` | Toggle selection |
+| `<C-q>` | Send selected to quickfix |
+
+#### FFF Commands
+
+| Command | Action |
+|---|---|
+| `:FFFFind [path\|query]` | Open file picker |
+| `:FFFScan` | Rescan files |
+| `:FFFRefreshGit` | Refresh git status |
+| `:FFFClearCache all` | Clear all caches |
+| `:FFFHealth` | Health check |
+
+### Oil (File Explorer)
 | Keybinding | Action |
 |---|---|
-| `<leader>e` | Open parent directory (File explorer) |
+| `<leader>e` | Open parent directory |
 
-#### LSP (Language Server Protocol)
+### LSP (ty — Python Type Checker)
 | Keybinding | Action |
 |---|---|
 | `gd` | Go to definition |
@@ -45,8 +83,17 @@ Leader key is set to `<Space>`.
 | `<leader>cd` | Open diagnostic float |
 | `<leader>ca` | Code action |
 | `<leader>wd` | List document symbols |
+| `<leader>cf` | Format buffer |
+| `<leader>co` | Organize imports |
+| `<leader>cF` | Fix all |
 
-#### Debugger (DAP)
+### Diagnostics
+| Keybinding | Action |
+|---|---|
+| `]d` | Next diagnostic |
+| `[d` | Previous diagnostic |
+
+### Debugger (DAP)
 | Keybinding | Action |
 |---|---|
 | `<leader>db` | Toggle breakpoint |
@@ -56,16 +103,18 @@ Leader key is set to `<Space>`.
 | `<leader>dsb` | Step back |
 | `<leader>dfi` | Step into |
 | `<leader>dfo` | Step out |
+| `<leader>dt` | Debug nearest test |
 
-#### Testing (Neotest)
+### Testing (Neotest)
 | Keybinding | Action |
 |---|---|
 | `<leader>tr` | Run nearest test |
 | `<leader>ts` | Stop nearest test |
 | `<leader>to` | Show test output panel |
-| `<leader>tm` | Open test summary menu |
+| `<leader>tm` | Open test summary |
+| `<leader>tf` | Run all tests in file |
 
-#### Completion (Blink.cmp)
+### Completion (Blink.cmp)
 | Keybinding | Action |
 |---|---|
 | `Enter` | Accept completion |
@@ -77,10 +126,51 @@ Leader key is set to `<Space>`.
 | `<Tab>` | Select next (fallback) |
 | `<S-Tab>` | Select previous (fallback) |
 
-#### Which-Key
+### Which-Key
 | Keybinding | Action |
 |---|---|
 | `<leader>?` | Show buffer local keymaps |
+
+---
+
+## Installation
+
+### Prerequisites
+
+This config requires **Neovim 0.11+** (for `vim.pack` and `vim.lsp.config`).
+
+### Python Tooling
+
+Install `ty` (type checker) and `ruff` (linter/formatter):
+
+```bash
+# Recommended: via uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv tool install ty@latest
+uv tool install ruff@latest
+
+# Alternative: standalone installers
+curl -LsSf https://astral.sh/ty/install.sh | sh
+curl -LsSf https://astral.sh/ruff/install.sh | sh
+
+# Alternative: via pip
+pip install ty ruff
+```
+
+Verify installation:
+```bash
+which ty ruff
+ty --version
+ruff --version
+```
+
+### Python Debugger
+
+`nvim-dap-python` uses `uv` to run the debugger (debugpy is managed automatically):
+```bash
+# Ensure uv is installed (see above)
+# No additional setup needed
+```
 
 ---
 
@@ -143,8 +233,7 @@ Combine operators (`c`: change, `d`: delete, `y`: yank) with motions or text obj
 - **todo-comments.nvim**: Highlight TODO/FIXME comments.
 
 ### LSP & Completion
-- **mason.nvim**: Portable package manager for LSPs, DAPs, linters, and formatters.
-- **nvim-lspconfig**: Quickstart configs for Nvim LSP.
+- **nvim-lspconfig**: LSP configuration (used for ty setup).
 - **blink.cmp**: Fast completion engine.
 - **lazydev.nvim**: Lua development setup for Neovim config.
 
@@ -153,7 +242,7 @@ Combine operators (`c`: change, `d`: delete, `y`: yank) with motions or text obj
 - **nvim-lint**: Asynchronous linter.
 
 ### Tools & Utilities
-- **telescope.nvim**: Fuzzy finder (files, grep, buffers, etc.).
+- **fff.nvim**: Rust-powered fuzzy file picker (files, grep, frecency).
 - **oil.nvim**: File system editor (edit directory like a buffer).
 - **nvim-treesitter**: Advanced syntax highlighting and parsing.
 - **gitsigns.nvim**: Git integration (signs in gutter, etc.).
@@ -161,4 +250,7 @@ Combine operators (`c`: change, `d`: delete, `y`: yank) with motions or text obj
 
 ### Debugging & Testing
 - **nvim-dap**: Debug Adapter Protocol client.
+- **nvim-dap-ui**: DAP UI (variables, stack trace, etc.).
+- **nvim-dap-python**: Python debugging (via uv/debugpy).
 - **neotest**: Framework for running tests.
+- **neotest-python**: Python test adapter (pytest).
